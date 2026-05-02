@@ -320,10 +320,10 @@ def test_cmd_update_retries_optional_extras_individually_when_all_fails(monkeypa
         if cmd == ["git", "fetch", "origin"]:
             return SimpleNamespace(stdout="", stderr="", returncode=0)
         if cmd == ["git", "rev-parse", "--abbrev-ref", "HEAD"]:
-            return SimpleNamespace(stdout="main\n", stderr="", returncode=0)
-        if cmd == ["git", "rev-list", "HEAD..origin/main", "--count"]:
+            return SimpleNamespace(stdout="master\n", stderr="", returncode=0)
+        if cmd == ["git", "rev-list", "HEAD..origin/master", "--count"]:
             return SimpleNamespace(stdout="1\n", stderr="", returncode=0)
-        if cmd == ["git", "pull", "origin", "main"]:
+        if cmd == ["git", "pull", "origin", "master"]:
             return SimpleNamespace(stdout="Updating\n", stderr="", returncode=0)
         if cmd == ["/usr/bin/uv", "pip", "install", "-e", ".[all]", "--quiet"]:
             raise CalledProcessError(returncode=1, cmd=cmd)
@@ -368,10 +368,10 @@ def test_cmd_update_succeeds_with_extras(monkeypatch, tmp_path):
         if cmd == ["git", "fetch", "origin"]:
             return SimpleNamespace(stdout="", stderr="", returncode=0)
         if cmd == ["git", "rev-parse", "--abbrev-ref", "HEAD"]:
-            return SimpleNamespace(stdout="main\n", stderr="", returncode=0)
-        if cmd == ["git", "rev-list", "HEAD..origin/main", "--count"]:
+            return SimpleNamespace(stdout="master\n", stderr="", returncode=0)
+        if cmd == ["git", "rev-list", "HEAD..origin/master", "--count"]:
             return SimpleNamespace(stdout="1\n", stderr="", returncode=0)
-        if cmd == ["git", "pull", "origin", "main"]:
+        if cmd == ["git", "pull", "origin", "master"]:
             return SimpleNamespace(stdout="Updating\n", stderr="", returncode=0)
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
@@ -389,7 +389,7 @@ def test_cmd_update_succeeds_with_extras(monkeypatch, tmp_path):
 # ---------------------------------------------------------------------------
 
 def _make_update_side_effect(
-    current_branch="main",
+    current_branch="master",
     commit_count="3",
     ff_only_fails=False,
     reset_fails=False,
@@ -408,7 +408,7 @@ def _make_update_side_effect(
             return SimpleNamespace(stdout="", stderr="", returncode=0)
         if "rev-parse" in joined and "--abbrev-ref" in joined:
             return SimpleNamespace(stdout=f"{current_branch}\n", stderr="", returncode=0)
-        if "checkout" in joined and "main" in joined:
+        if "checkout" in joined and "master" in joined:
             return SimpleNamespace(stdout="", stderr="", returncode=0)
         if "rev-list" in joined:
             return SimpleNamespace(stdout=f"{commit_count}\n", stderr="", returncode=0)
@@ -441,7 +441,7 @@ def test_cmd_update_falls_back_to_reset_when_ff_only_fails(monkeypatch, tmp_path
 
     reset_calls = [c for c in recorded if "reset" in c and "--hard" in c]
     assert len(reset_calls) == 1
-    assert reset_calls[0] == ["git", "reset", "--hard", "origin/main"]
+    assert reset_calls[0] == ["git", "reset", "--hard", "origin/master"]
 
     out = capsys.readouterr().out
     assert "Fast-forward not possible" in out
@@ -462,11 +462,11 @@ def test_cmd_update_no_reset_when_ff_only_succeeds(monkeypatch, tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# Non-main branch → auto-checkout main
+# Non-master branch → auto-checkout master
 # ---------------------------------------------------------------------------
 
-def test_cmd_update_switches_to_main_from_feature_branch(monkeypatch, tmp_path, capsys):
-    """When on a feature branch, update checks out main before pulling."""
+def test_cmd_update_switches_to_master_from_feature_branch(monkeypatch, tmp_path, capsys):
+    """When on a feature branch, update checks out master before pulling."""
     _setup_update_mocks(monkeypatch, tmp_path)
     monkeypatch.setattr("shutil.which", lambda name: "/usr/bin/uv" if name == "uv" else None)
 
@@ -475,16 +475,16 @@ def test_cmd_update_switches_to_main_from_feature_branch(monkeypatch, tmp_path, 
 
     hermes_main.cmd_update(SimpleNamespace())
 
-    checkout_calls = [c for c in recorded if "checkout" in c and "main" in c]
+    checkout_calls = [c for c in recorded if "checkout" in c and "master" in c]
     assert len(checkout_calls) == 1
 
     out = capsys.readouterr().out
     assert "fix/something" in out
-    assert "switching to main" in out
+    assert "switching to master" in out
 
 
-def test_cmd_update_switches_to_main_from_detached_head(monkeypatch, tmp_path, capsys):
-    """When in detached HEAD state, update checks out main before pulling."""
+def test_cmd_update_switches_to_master_from_detached_head(monkeypatch, tmp_path, capsys):
+    """When in detached HEAD state, update checks out master before pulling."""
     _setup_update_mocks(monkeypatch, tmp_path)
     monkeypatch.setattr("shutil.which", lambda name: "/usr/bin/uv" if name == "uv" else None)
 
@@ -493,7 +493,7 @@ def test_cmd_update_switches_to_main_from_detached_head(monkeypatch, tmp_path, c
 
     hermes_main.cmd_update(SimpleNamespace())
 
-    checkout_calls = [c for c in recorded if "checkout" in c and "main" in c]
+    checkout_calls = [c for c in recorded if "checkout" in c and "master" in c]
     assert len(checkout_calls) == 1
 
     out = capsys.readouterr().out

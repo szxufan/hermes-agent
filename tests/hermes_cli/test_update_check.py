@@ -44,7 +44,6 @@ def test_check_for_updates_expired_cache(tmp_path, monkeypatch):
     repo_dir.mkdir()
     (repo_dir / ".git").mkdir()
 
-    # Write an expired cache (timestamp far in the past)
     cache_file = tmp_path / ".update_check"
     cache_file.write_text(json.dumps({"ts": 0, "behind": 1}))
 
@@ -56,6 +55,39 @@ def test_check_for_updates_expired_cache(tmp_path, monkeypatch):
 
     assert result == 5
     assert mock_run.call_count == 2  # git fetch + git rev-list
+
+
+def test_check_via_local_git_uses_master_branch(tmp_path, monkeypatch):
+    """_check_via_local_git should query origin/master, not origin/main."""
+    from hermes_cli.banner import _check_via_local_git
+
+    (tmp_path / ".git").mkdir()
+
+    mock_result = MagicMock(returncode=0, stdout="0\n")
+    with patch("hermes_cli.banner.subprocess.run", return_value=mock_result) as mock_run:
+        _check_via_local_git(tmp_path)
+
+    calls = mock_run.call_args_list
+    rev_list_calls = [c for c in calls if any("rev-list" in str(arg) for arg in c[0])]
+    assert len(rev_list_calls) == 1
+    cmd = rev_list_calls[0][0][0]
+    assert any("origin/master" in str(part) for part in cmd), f"Expected origin/master in rev-list command, got: {cmd}"
+    assert not any("origin/main" in str(part) for part in cmd), f"Should not reference origin/main in rev-list command, got: {cmd}"
+
+
+def test_check_via_rev_uses_master_branch():
+    """_check_via_rev should query refs/heads/master, not refs/heads/main."""
+    from hermes_cli.banner import _check_via_rev
+
+    mock_result = MagicMock(returncode=0, stdout="abc123\trefs/heads/master\n")
+    with patch("hermes_cli.banner.subprocess.run", return_value=mock_result) as mock_run:
+        _check_via_rev("abc123")
+
+    calls = mock_run.call_args_list
+    ls_remote_call = calls[0]
+    cmd = ls_remote_call[0][0]
+    assert any("refs/heads/master" in str(part) for part in cmd), f"Expected refs/heads/master in ls-remote command, got: {cmd}"
+    assert not any("refs/heads/main" in str(part) for part in cmd), f"Should not reference refs/heads/main in ls-remote command, got: {cmd}"
 
 
 def test_check_for_updates_no_git_dir(tmp_path, monkeypatch):

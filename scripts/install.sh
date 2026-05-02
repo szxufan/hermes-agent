@@ -51,7 +51,7 @@ ROOT_FHS_LAYOUT=false
 # Options
 USE_VENV=true
 RUN_SETUP=true
-BRANCH="main"
+BRANCH="master"
 
 # Detect non-interactive mode (e.g. curl | bash)
 # When stdin is not a terminal, read -p will fail with EOF,

@@ -68,7 +68,7 @@ import SkillsPage from "@/pages/SkillsPage";
 import ChatPage from "@/pages/ChatPage";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
-import { useI18n } from "@/i18n";
+import { useI18n, type Translations } from "@/i18n";
 import { PluginPage, PluginSlot, usePlugins } from "@/plugins";
 import type { PluginManifest } from "@/plugins";
 import { useTheme } from "@/themes";
@@ -181,6 +181,7 @@ function resolveIcon(name: string): ComponentType<{ className?: string }> {
 function buildNavItems(
   builtIn: NavItem[],
   manifests: PluginManifest[],
+  t: Translations,
 ): NavItem[] {
   const items = [...builtIn];
 
@@ -188,9 +189,12 @@ function buildNavItems(
     if (manifest.tab.override) continue;
     if (manifest.tab.hidden) continue;
 
+    const pluginNavKey = manifest.tab.path.slice(1) as keyof Translations["app"]["nav"];
+    const label = pluginNavKey in t.app.nav ? t.app.nav[pluginNavKey] : manifest.label;
+
     const pluginItem: NavItem = {
       path: manifest.tab.path,
-      label: manifest.label,
+      label,
       icon: resolveIcon(manifest.icon),
     };
 
@@ -323,8 +327,8 @@ export default function App() {
   );
 
   const navItems = useMemo(
-    () => buildNavItems(builtinNav, manifests),
-    [builtinNav, manifests],
+    () => buildNavItems(builtinNav, manifests, t),
+    [builtinNav, manifests, t],
   );
   const routes = useMemo(
     () => buildRoutes(builtinRoutes, manifests),
@@ -334,11 +338,15 @@ export default function App() {
     () =>
       manifests
         .filter((m) => !m.tab.hidden)
-        .map((m) => ({
-          path: m.tab.override ?? m.tab.path,
-          label: m.label,
-        })),
-    [manifests],
+        .map((m) => {
+          const pluginNavKey = (m.tab.override ?? m.tab.path).slice(1) as keyof Translations["app"]["nav"];
+          const label = pluginNavKey in t.app.nav ? t.app.nav[pluginNavKey] : m.label;
+          return {
+            path: m.tab.override ?? m.tab.path,
+            label,
+          };
+        }),
+    [manifests, t],
   );
 
   const layoutVariant = theme.layoutVariant ?? "standard";

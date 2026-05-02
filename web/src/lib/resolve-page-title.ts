@@ -21,13 +21,17 @@ export function resolvePageTitle(
   if (normalized === "/") {
     return t.app.nav.sessions;
   }
-  const plugin = pluginTabs.find((p) => p.path === normalized);
-  if (plugin) {
-    return plugin.label;
-  }
   const key = BUILTIN[normalized];
   if (key) {
     return t.app.nav[key];
+  }
+  const plugin = pluginTabs.find((p) => p.path === normalized);
+  if (plugin) {
+    const pluginNavKey = normalized.slice(1) as keyof Translations["app"]["nav"];
+    if (pluginNavKey in t.app.nav) {
+      return t.app.nav[pluginNavKey];
+    }
+    return plugin.label;
   }
   return t.app.webUi;
 }

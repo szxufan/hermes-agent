@@ -9,7 +9,7 @@ import pytest
 from hermes_cli.main import cmd_update, PROJECT_ROOT
 
 
-def _make_run_side_effect(branch="main", verify_ok=True, commit_count="0"):
+def _make_run_side_effect(branch="master", verify_ok=True, commit_count="0"):
     """Build a side_effect function for subprocess.run that simulates git commands."""
 
     def side_effect(cmd, **kwargs):
@@ -40,11 +40,11 @@ def mock_args():
 
 
 class TestCmdUpdateBranchFallback:
-    """cmd_update falls back to main when current branch has no remote counterpart."""
+    """cmd_update falls back to master when current branch has no remote counterpart."""
 
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
-    def test_update_falls_back_to_main_when_branch_not_on_remote(
+    def test_update_falls_back_to_master_when_branch_not_on_remote(
         self, mock_run, _mock_which, mock_args, capsys
     ):
         mock_run.side_effect = _make_run_side_effect(
@@ -55,16 +55,16 @@ class TestCmdUpdateBranchFallback:
 
         commands = [" ".join(str(a) for a in c.args[0]) for c in mock_run.call_args_list]
 
-        # rev-list should use origin/main, not origin/fix/stoicneko
+        # rev-list should use origin/master, not origin/fix/stoicneko
         rev_list_cmds = [c for c in commands if "rev-list" in c]
         assert len(rev_list_cmds) == 1
-        assert "origin/main" in rev_list_cmds[0]
+        assert "origin/master" in rev_list_cmds[0]
         assert "origin/fix/stoicneko" not in rev_list_cmds[0]
 
-        # pull should use main, not fix/stoicneko
+        # pull should use master, not fix/stoicneko
         pull_cmds = [c for c in commands if "pull" in c]
         assert len(pull_cmds) == 1
-        assert "main" in pull_cmds[0]
+        assert "master" in pull_cmds[0]
 
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
@@ -72,7 +72,7 @@ class TestCmdUpdateBranchFallback:
         self, mock_run, _mock_which, mock_args, capsys
     ):
         mock_run.side_effect = _make_run_side_effect(
-            branch="main", verify_ok=True, commit_count="2"
+            branch="master", verify_ok=True, commit_count="2"
         )
 
         cmd_update(mock_args)
@@ -81,11 +81,11 @@ class TestCmdUpdateBranchFallback:
 
         rev_list_cmds = [c for c in commands if "rev-list" in c]
         assert len(rev_list_cmds) == 1
-        assert "origin/main" in rev_list_cmds[0]
+        assert "origin/master" in rev_list_cmds[0]
 
         pull_cmds = [c for c in commands if "pull" in c]
         assert len(pull_cmds) == 1
-        assert "main" in pull_cmds[0]
+        assert "master" in pull_cmds[0]
 
     @patch("shutil.which", return_value=None)
     @patch("subprocess.run")
@@ -93,7 +93,7 @@ class TestCmdUpdateBranchFallback:
         self, mock_run, _mock_which, mock_args, capsys
     ):
         mock_run.side_effect = _make_run_side_effect(
-            branch="main", verify_ok=True, commit_count="0"
+            branch="master", verify_ok=True, commit_count="0"
         )
 
         cmd_update(mock_args)
@@ -113,7 +113,7 @@ class TestCmdUpdateBranchFallback:
     ):
         mock_which.side_effect = {"uv": "/usr/bin/uv", "npm": "/usr/bin/npm"}.get
         mock_run.side_effect = _make_run_side_effect(
-            branch="main", verify_ok=True, commit_count="1"
+            branch="master", verify_ok=True, commit_count="1"
         )
 
         cmd_update(mock_args)
@@ -155,7 +155,7 @@ class TestCmdUpdateBranchFallback:
             mock_sys.stdin.isatty.return_value = False
             mock_sys.stdout.isatty.return_value = False
             mock_run.side_effect = _make_run_side_effect(
-                branch="main", verify_ok=True, commit_count="1"
+                branch="master", verify_ok=True, commit_count="1"
             )
 
             cmd_update(mock_args)

@@ -733,7 +733,7 @@ class TestPruneCheckpoints:
         import time as _time
         shadow = base / dir_hash
         shadow.mkdir(parents=True)
-        (shadow / "HEAD").write_text("ref: refs/heads/main\n")
+        (shadow / "HEAD").write_text("ref: refs/heads/master\n")
         (shadow / "HERMES_WORKDIR").write_text(str(workdir) + "\n")
         (shadow / "info").mkdir()
         (shadow / "info" / "exclude").write_text("node_modules/\n")
@@ -852,7 +852,7 @@ class TestMaybeAutoPruneCheckpoints:
         base.mkdir(parents=True, exist_ok=True)
         shadow = base / dir_hash
         shadow.mkdir()
-        (shadow / "HEAD").write_text("ref: refs/heads/main\n")
+        (shadow / "HEAD").write_text("ref: refs/heads/master\n")
         (shadow / "HERMES_WORKDIR").write_text(str(workdir) + "\n")
         return shadow
 

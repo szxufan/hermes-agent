@@ -37,7 +37,7 @@ def git_repo(tmp_path):
     # "pushed".  Without this, `git log HEAD --not --remotes` treats every
     # commit as unpushed and cleanup refuses to delete worktrees.
     subprocess.run(
-        ["git", "update-ref", "refs/remotes/origin/main", "HEAD"],
+        ["git", "update-ref", "refs/remotes/origin/master", "HEAD"],
         cwd=repo, capture_output=True,
     )
     return repo
